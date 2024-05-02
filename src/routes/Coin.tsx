@@ -10,7 +10,7 @@ const Container = styled.div`
 `;
 
 const Header = styled.header`
-  height: 10vh;
+  height: 15vh;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -24,6 +24,34 @@ const Title = styled.h1`
 const Loader = styled.span`
   text-align: center;
   display: block;
+`;
+
+const Overview = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 20px 20px;
+  border-radius: 10px;
+
+  background-color: rgba(0, 0, 0, 0.5);
+`;
+
+const OverviewItem = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  span:first-child {
+    font-size: 10px;
+    font-weight: 400;
+    text-transform: uppercase;
+    margin-bottom: 5px;
+  }
+`;
+
+const Description = styled.p`
+  margin: 20px 0px;
 `;
 
 // Interface
@@ -104,9 +132,6 @@ function Coin() {
         await fetch(`https://api.coinpaprika.com/v1/tickers/${coinId}`)
       ).json();
 
-      console.log(infoData);
-      console.log(priceData);
-
       setInfo(infoData);
       setPriceInfo(priceData);
       setLoading(false);
@@ -117,14 +142,47 @@ function Coin() {
   // infoData?.~~.~~
   // ?.이란
   // ?. 앞의 평가대상이 undefined나 null이면 평가를 멈추고 undefined를 반환한다. 에러를 반환하지 않음.
-
   return (
     <Container>
       <Header>
-        <Title>{state?.name || 'Loading..'}</Title>
+        <Title>
+          {state?.name ? state.name : loading ? 'Loading...' : info?.name}
+        </Title>
       </Header>
 
-      {loading ? <Loader>Loading...</Loader> : null}
+      {loading ? (
+        <Loader>Loading...</Loader>
+      ) : (
+        <>
+          <Overview>
+            <OverviewItem>
+              <span>Rank:</span>
+              <span>{info?.rank}</span>
+            </OverviewItem>
+            <OverviewItem>
+              <span>Symbol:</span>
+              <span>{info?.symbol}</span>
+            </OverviewItem>
+            <OverviewItem>
+              <span>Open Source:</span>
+              <span>{info?.open_source ? 'Yes' : 'No'}</span>
+            </OverviewItem>
+          </Overview>
+
+          <Description>{info?.description}</Description>
+
+          <Overview>
+            <OverviewItem>
+              <span>Total Supply:</span>
+              <span>{priceInfo?.total_supply}</span>
+            </OverviewItem>
+            <OverviewItem>
+              <span>Max Supply:</span>
+              <span>{priceInfo?.max_supply}</span>
+            </OverviewItem>
+          </Overview>
+        </>
+      )}
     </Container>
   );
 }
