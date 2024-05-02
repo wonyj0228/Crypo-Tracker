@@ -1,6 +1,7 @@
 import { RouterProvider } from 'react-router-dom';
 import Router from './Router';
 import { createGlobalStyle } from 'styled-components';
+import { ReactQueryDevtools } from 'react-query/devtools';
 
 // reset css를 사용하고 싶을 때
 // styled component는 컴포넌트에 직접적으로 style을 줌으로, styled component에게 reset 내용을 전달해줄 필요가 있음
@@ -73,6 +74,7 @@ function App() {
     <>
       <GlobalStyle />
       <RouterProvider router={Router()} />
+      <ReactQueryDevtools initialIsOpen={true} />
     </>
   );
 }

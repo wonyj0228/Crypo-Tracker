@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
+import { useQuery } from 'react-query';
 import { useMatch } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import { Outlet, useLocation, useParams } from 'react-router-dom';
 import styled from 'styled-components';
+import { fetchCoinInfo, fetchCoinTickers } from '../api';
 
 // Component
 const Container = styled.div`
@@ -63,7 +65,7 @@ const Taps = styled.div`
   grid-template-columns: 1fr 1fr;
 `;
 
-const Tap = styled.span<{ isActive: boolean }>`
+const Tap = styled.span<{ $isActive: boolean }>`
   text-align: center;
   text-transform: uppercase;
   font-size: 13px;
@@ -72,7 +74,7 @@ const Tap = styled.span<{ isActive: boolean }>`
   border-radius: 10px;
 
   color: ${(props) =>
-    props.isActive ? props.theme.accentColor : props.theme.textColor};
+    props.$isActive ? props.theme.accentColor : props.theme.textColor};
 
   a {
     display: block;
@@ -140,16 +142,29 @@ interface PriceData {
 
 function Coin() {
   // 데이터 선언 시, 데이터 타입 지정해줘야 함
+  // useParams v6버전부터 반드시 string | undefined로 자동설정됨
   const { coinId } = useParams<{ coinId: string }>();
   const { state } = useLocation() as RouteState;
-
-  const [loading, setLoading] = useState(true);
-  const [info, setInfo] = useState<InfoData>();
-  const [priceInfo, setPriceInfo] = useState<PriceData>();
 
   // 현재 url의 위치가 match한지 알려주는 react router dom의 hook
   const priceMatch = useMatch('/:coinId/price');
   const chartMatch = useMatch('/:coinId/chart');
+
+  // useQuery function자리에 undefined는 갈 수 없어서 string 강제로 만들어줌
+  const { isLoading: infoLoading, data: infoData } = useQuery<InfoData>(
+    ['info', coinId],
+    () => fetchCoinInfo(`${coinId}`)
+  );
+  const { isLoading: tickersLoading, data: tickersData } = useQuery<PriceData>(
+    ['tickers', coinId],
+    () => fetchCoinTickers(`${coinId}`)
+  );
+
+  const loading = infoLoading || tickersLoading;
+  /*
+  const [loading, setLoading] = useState(true);
+  const [info, setInfo] = useState<InfoData>();
+  const [priceInfo, setPriceInfo] = useState<PriceData>();
 
   useEffect(() => {
     (async () => {
@@ -166,6 +181,7 @@ function Coin() {
       setLoading(false);
     })();
   }, [coinId]);
+*/
 
   // optional chaining 사용하기
   // infoData?.~~.~~
@@ -181,11 +197,12 @@ function Coin() {
   // Link를 사용해 url만 바꿈. a태그는 refresh가 발생하기 때문에 사용하지 않았음
   // a태그로 이동하면 상태값을 모두 잃고 속도가 저하됨
   // Link는 페이지를 새로 불러오지 않기 때문에 Link 사용을 권장
+
   return (
     <Container>
       <Header>
         <Title>
-          {state?.name ? state.name : loading ? 'Loading...' : info?.name}
+          {state?.name ? state.name : loading ? 'Loading...' : infoData?.name}
         </Title>
       </Header>
 
@@ -196,36 +213,36 @@ function Coin() {
           <Overview>
             <OverviewItem>
               <span>Rank:</span>
-              <span>{info?.rank}</span>
+              <span>{infoData?.rank}</span>
             </OverviewItem>
             <OverviewItem>
               <span>Symbol:</span>
-              <span>{info?.symbol}</span>
+              <span>{infoData?.symbol}</span>
             </OverviewItem>
             <OverviewItem>
               <span>Open Source:</span>
-              <span>{info?.open_source ? 'Yes' : 'No'}</span>
+              <span>{infoData?.open_source ? 'Yes' : 'No'}</span>
             </OverviewItem>
           </Overview>
 
-          <Description>{info?.description}</Description>
+          <Description>{infoData?.description}</Description>
 
           <Overview>
             <OverviewItem>
               <span>Total Supply:</span>
-              <span>{priceInfo?.total_supply}</span>
+              <span>{tickersData?.total_supply}</span>
             </OverviewItem>
             <OverviewItem>
               <span>Max Supply:</span>
-              <span>{priceInfo?.max_supply}</span>
+              <span>{tickersData?.max_supply}</span>
             </OverviewItem>
           </Overview>
 
           <Taps>
-            <Tap isActive={chartMatch !== null}>
+            <Tap $isActive={chartMatch !== null}>
               <Link to={`/${coinId}/chart`}>Chart</Link>
             </Tap>
-            <Tap isActive={priceMatch !== null}>
+            <Tap $isActive={priceMatch !== null}>
               <Link to={`/${coinId}/price`}>Price</Link>
             </Tap>
           </Taps>

@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
+import { useQuery } from 'react-query';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
+import { fetchCoins } from '../api';
 
 const Container = styled.div`
   padding: 0px 20px;
@@ -52,7 +54,7 @@ const Img = styled.img`
   margin-right: 10px;
 `;
 
-interface CoinInterface {
+interface ICoin {
   id: string;
   name: string;
   symbol: string;
@@ -63,6 +65,13 @@ interface CoinInterface {
 }
 
 function Coins() {
+  // useQuery(쿼리 key값, 쿼리날리는 함수:promise를 반환해야 함)
+  // isLoading을 자체적으로 가지고 있음 boolean 반환
+  // 또한 react query는 데이터를 날리지 않아서, 다른 페이지에 갔다가 돌아와도 query를 다시 날리지 않음
+  const { isLoading, data } = useQuery<ICoin[]>('allCoins', fetchCoins);
+
+  // AS-IS
+  /*
   const [coins, setCoins] = useState<CoinInterface[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -74,18 +83,18 @@ function Coins() {
       setLoading(false);
     })();
   }, []);
-
+*/
   return (
     <Container>
       <Header>
         <Title>코인</Title>
       </Header>
 
-      {loading ? (
+      {isLoading ? (
         <Loader>Loading...</Loader>
       ) : (
         <CoinsList>
-          {coins.map((coin) => (
+          {data?.slice(0, 100)?.map((coin) => (
             <Coin key={coin.id}>
               <Link to={`/${coin.id}`} state={{ name: coin.name }}>
                 <Img
