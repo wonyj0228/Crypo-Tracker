@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
-import { useLocation, useParams } from 'react-router-dom';
+import { useMatch } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+import { Outlet, useLocation, useParams } from 'react-router-dom';
 import styled from 'styled-components';
 
 // Component
@@ -54,6 +56,29 @@ const Description = styled.p`
   margin: 20px 0px;
 `;
 
+const Taps = styled.div`
+  display: grid;
+  margin: 25px 0px;
+  gap: 10px;
+  grid-template-columns: 1fr 1fr;
+`;
+
+const Tap = styled.span<{ isActive: boolean }>`
+  text-align: center;
+  text-transform: uppercase;
+  font-size: 13px;
+  font-weight: 400;
+  background-color: rgba(0, 0, 0, 0.5);
+  border-radius: 10px;
+
+  color: ${(props) =>
+    props.isActive ? props.theme.accentColor : props.theme.textColor};
+
+  a {
+    display: block;
+    padding: 7px 0px;
+  }
+`;
 // Interface
 interface RouteState {
   state: { name: string };
@@ -122,6 +147,10 @@ function Coin() {
   const [info, setInfo] = useState<InfoData>();
   const [priceInfo, setPriceInfo] = useState<PriceData>();
 
+  // 현재 url의 위치가 match한지 알려주는 react router dom의 hook
+  const priceMatch = useMatch('/:coinId/price');
+  const chartMatch = useMatch('/:coinId/chart');
+
   useEffect(() => {
     (async () => {
       const infoData = await (
@@ -142,6 +171,16 @@ function Coin() {
   // infoData?.~~.~~
   // ?.이란
   // ?. 앞의 평가대상이 undefined나 null이면 평가를 멈추고 undefined를 반환한다. 에러를 반환하지 않음.
+
+  // Nested Routes : 페이지 내부에서 또다른 페이지를 연결해주는 것
+  // ex ) 주소 / coinId / price => price, chart는 새로운 페이지
+
+  // Router.tsx에서 children 추가
+  // Outlet 추가 (react-router-dom)
+
+  // Link를 사용해 url만 바꿈. a태그는 refresh가 발생하기 때문에 사용하지 않았음
+  // a태그로 이동하면 상태값을 모두 잃고 속도가 저하됨
+  // Link는 페이지를 새로 불러오지 않기 때문에 Link 사용을 권장
   return (
     <Container>
       <Header>
@@ -181,6 +220,17 @@ function Coin() {
               <span>{priceInfo?.max_supply}</span>
             </OverviewItem>
           </Overview>
+
+          <Taps>
+            <Tap isActive={chartMatch !== null}>
+              <Link to={`/${coinId}/chart`}>Chart</Link>
+            </Tap>
+            <Tap isActive={priceMatch !== null}>
+              <Link to={`/${coinId}/price`}>Price</Link>
+            </Tap>
+          </Taps>
+
+          <Outlet />
         </>
       )}
     </Container>
