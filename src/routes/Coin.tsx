@@ -140,10 +140,10 @@ interface PriceData {
 
 function Coin() {
   // 데이터 선언 시, 데이터 타입 지정해줘야 함
-  const [loading, setLoading] = useState(true);
   const { coinId } = useParams<{ coinId: string }>();
   const { state } = useLocation() as RouteState;
 
+  const [loading, setLoading] = useState(true);
   const [info, setInfo] = useState<InfoData>();
   const [priceInfo, setPriceInfo] = useState<PriceData>();
 
