@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { Helmet } from 'react-helmet';
 import { useQuery } from 'react-query';
 import { useMatch } from 'react-router-dom';
 import { Link } from 'react-router-dom';
@@ -151,13 +151,20 @@ function Coin() {
   const chartMatch = useMatch('/:coinId/chart');
 
   // useQuery function자리에 undefined는 갈 수 없어서 string 강제로 만들어줌
+  // react query 캐시 시스템에서 저장되고 작동하기 위해선 key값은 고유한 값이어야 함
+  // key값을 array로 줘서, 0번엔 카테고리, 1번엔 id를 줌
   const { isLoading: infoLoading, data: infoData } = useQuery<InfoData>(
     ['info', coinId],
     () => fetchCoinInfo(`${coinId}`)
   );
+  // fetch를 interval로 보낼 수 있음. 밀리초 단위로 계속해서 refetch시킴.
+  // option 중 하나로 option엔 다양한 것이 있으니 참조
   const { isLoading: tickersLoading, data: tickersData } = useQuery<PriceData>(
     ['tickers', coinId],
-    () => fetchCoinTickers(`${coinId}`)
+    () => fetchCoinTickers(`${coinId}`),
+    {
+      refetchInterval: 5000,
+    }
   );
 
   const loading = infoLoading || tickersLoading;
@@ -200,6 +207,11 @@ function Coin() {
 
   return (
     <Container>
+      <Helmet>
+        <title>
+          {state?.name ? state.name : loading ? 'Loading...' : infoData?.name}
+        </title>
+      </Helmet>
       <Header>
         <Title>
           {state?.name ? state.name : loading ? 'Loading...' : infoData?.name}
@@ -220,8 +232,8 @@ function Coin() {
               <span>{infoData?.symbol}</span>
             </OverviewItem>
             <OverviewItem>
-              <span>Open Source:</span>
-              <span>{infoData?.open_source ? 'Yes' : 'No'}</span>
+              <span>Price:</span>
+              <span>{tickersData?.quotes.USD.price.toFixed(3)}</span>
             </OverviewItem>
           </Overview>
 
@@ -247,11 +259,12 @@ function Coin() {
             </Tap>
           </Taps>
 
-          <Outlet />
+          <Outlet context={{ coinId }} />
         </>
       )}
     </Container>
   );
 }
 
+// Outlet에 props를 넘겨줄 때는 context 사용하기
 export default Coin;
