@@ -1,7 +1,11 @@
-import { RouterProvider } from 'react-router-dom';
+import { Outlet, RouterProvider } from 'react-router-dom';
 import Router from './Router';
-import { createGlobalStyle } from 'styled-components';
+import { ThemeProvider, createGlobalStyle } from 'styled-components';
 import { ReactQueryDevtools } from 'react-query/devtools';
+import { darkTheme, lightTheme } from './theme';
+import { useState } from 'react';
+import { useRecoilValue } from 'recoil';
+import { isDarkAtom } from './atoms';
 
 // reset css를 사용하고 싶을 때
 // styled component는 컴포넌트에 직접적으로 style을 줌으로, styled component에게 reset 내용을 전달해줄 필요가 있음
@@ -70,13 +74,26 @@ a{
 `;
 
 function App() {
+  const isDark = useRecoilValue(isDarkAtom);
+
   return (
     <>
-      <GlobalStyle />
-      <RouterProvider router={Router()} />
-      <ReactQueryDevtools initialIsOpen={true} />
+      <ThemeProvider theme={isDark ? darkTheme : lightTheme}>
+        <GlobalStyle />
+        <RouterProvider router={Router()} />
+        <ReactQueryDevtools initialIsOpen={true} />
+      </ThemeProvider>
     </>
   );
 }
 
 export default App;
+
+// 비효율적인 state 관리. 드릴링 발생
+// App (isDark, modifierFn)
+// -> Router -> Coins(modifierFn)
+// -> Router -> Coin -> Chart (isDark)
+
+// 효율적인 state 관리
+// Header -> (isDark) <- Chart
+// 전역 state 관리가 필요함 -> recoil의 필요성
