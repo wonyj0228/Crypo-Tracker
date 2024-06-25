@@ -4,6 +4,8 @@ import { Link, useOutletContext } from 'react-router-dom';
 import styled from 'styled-components';
 import { fetchCoins } from '../api';
 import { Helmet } from 'react-helmet';
+import { useSetRecoilState } from 'recoil';
+import { isDarkAtom } from '../atoms';
 
 const Container = styled.div`
   padding: 0px 20px;
@@ -70,7 +72,8 @@ function Coins() {
   // isLoading을 자체적으로 가지고 있음 boolean 반환
   // 또한 react query는 데이터를 날리지 않아서, 다른 페이지에 갔다가 돌아와도 query를 다시 날리지 않음
   const { isLoading, data } = useQuery<ICoin[]>('allCoins', fetchCoins);
-
+  const setDarkAtom = useSetRecoilState(isDarkAtom);
+  const toggleDarkAtom = () => setDarkAtom((prev) => !prev);
   // AS-IS
   /*
   const [coins, setCoins] = useState<CoinInterface[]>([]);
@@ -92,7 +95,7 @@ function Coins() {
       </Helmet>
       <Header>
         <Title>코인</Title>
-        <button>Toggle Dark Mode</button>
+        <button onClick={toggleDarkAtom}>Toggle Dark Mode</button>
       </Header>
 
       {isLoading ? (
